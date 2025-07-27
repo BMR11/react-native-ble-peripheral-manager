@@ -1,0 +1,4 @@
+- Spec file must start with 'Native'
+- RNBlePeripheralManager should match with: podspec, pod name, .h file
+- For Objc in Swift, we needed to add header, .h and remove private header settings (not sure if use_frameworks needed in Pod file)
+-
