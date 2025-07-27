@@ -12,7 +12,7 @@
 - (instancetype)init {
     self = [super init];
     if (self) {
-        _swBlePeripheralManager = [[SwiftBlePeripheralManager alloc] init];
+        _swBlePeripheralManager = [[SwiftBlePeripheralManager alloc] initWithBlePeripheralManager:self];
     }
     return self;
 }
