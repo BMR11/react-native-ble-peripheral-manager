@@ -6,6 +6,6 @@
 //
 #import <React/RCTBridgeModule.h>
 
-#import "RNBlePeripheralManager/BlePeripheralManager.h"
+#import <RNBlePeripheralManager/BlePeripheralManager.h>
 #ifdef RCT_NEW_ARCH_ENABLED
 #endif

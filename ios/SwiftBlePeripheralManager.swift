@@ -8,6 +8,8 @@
 import Foundation
 
 @objc public class SwiftBlePeripheralManager: NSObject {
+
+    private weak var blePeripheralManager: BlePeripheralManager?
     
     @objc public override init() {
         super.init()

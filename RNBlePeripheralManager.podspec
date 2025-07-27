@@ -14,7 +14,7 @@ Pod::Spec.new do |s|
   s.source       = { :git => "https://www.url.repo.git", :tag => "#{s.version}" }
 
   s.source_files = "ios/**/*.{h,m,mm,cpp,swift}"
-  s.private_header_files = "ios/**/*.h"
+  # s.private_header_files = "ios/**/*.h"
 
  s.static_framework = true
 
