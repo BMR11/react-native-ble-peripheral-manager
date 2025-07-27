@@ -32,6 +32,7 @@
     "!**/.*"
   ],
   "scripts": {
+    "iop": "yarn workspace react-native-ble-peripheral-manager-example ios",
     "example": "yarn workspace react-native-ble-peripheral-manager-example",
     "test": "jest",
     "typecheck": "tsc",
