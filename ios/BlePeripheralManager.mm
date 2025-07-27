@@ -1,12 +1,29 @@
-#import "BlePeripheralManager.h"
+#import <BlePeripheralManager.h>
+#if __has_include("RNBlePeripheralManager-Swift.h")
+#import <RNBlePeripheralManager-Swift.h>
+#else
+#import <RNBlePeripheralManager/RNBlePeripheralManager-Swift.h>
+#endif
 
-@implementation BlePeripheralManager
+@implementation BlePeripheralManager {
+    SwiftBlePeripheralManager * _swBlePeripheralManager;
+}
+
+- (instancetype)init {
+    self = [super init];
+    if (self) {
+        _swBlePeripheralManager = [[SwiftBlePeripheralManager alloc] initWithBlePeripheralManager:self];
+    }
+    return self;
+}
+
 RCT_EXPORT_MODULE()
 
 - (NSNumber *)multiply:(double)a b:(double)b {
-    NSNumber *result = @(a * b);
+    // NSNumber *result = @(a * b);
 
-    return result;
+    // return result;
+    return [_swBlePeripheralManager multiply:a b:b];
 }
 
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
