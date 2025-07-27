@@ -1975,7 +1975,7 @@ SPEC CHECKSUMS:
   ReactAppDependencyProvider: d5dcc564f129632276bd3184e60f053fcd574d6b
   ReactCodegen: fda99a79c866370190e162083a35602fdc314e5d
   ReactCommon: 4d0da92a5eb8da86c08e3ec34bd23ab439fb2461
-  RNBlePeripheralManager: 117c2c3c8306031e5ca23e1d82492f059d7120c4
+  RNBlePeripheralManager: 61b50d223f46b4fc431e13d5291aa2d4bb1ddc89
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Yoga: 9f110fc4b7aa538663cba3c14cbb1c335f43c13f
 
