@@ -8,7 +8,7 @@ import CoreBluetooth
 import Foundation
 
 @objc public class SwiftBlePeripheralManager: NSObject, CBPeripheralManagerDelegate {
-
+    
     private weak var blePeripheralManager: BlePeripheralManager?
     var advertising: Bool = false
        var hasListeners: Bool = false
@@ -30,18 +30,20 @@ import Foundation
     
     //// PUBLIC METHODS
 
-       @objc func setName(_ name: String) {
+       @objc public func setName(_ name: String) {
            self.name = name
            print("name set to \(name)")
        }
        
-       @objc func isAdvertising(_ resolve: RCTPromiseResolveBlock, rejecter reject: RCTPromiseRejectBlock) {
-           resolve(advertising)
-           print("called isAdvertising")
+       @objc public func isAdvertising(_ resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+           DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+                  resolve(true)
+                  print("called isAdvertising after delay")
+              }
        }
     
     @objc(addService:primary:)
-       func addService(_ uuid: String, primary: Bool) {
+    public  func addService(_ uuid: String, primary: Bool) {
            let serviceUUID = CBUUID(string: uuid)
            let service = CBMutableService(type: serviceUUID, primary: primary)
            if(servicesMap.keys.contains(uuid) != true){
@@ -55,7 +57,7 @@ import Foundation
        }
        
        @objc(addCharacteristicToService:uuid:permissions:properties:data:)
-       func addCharacteristicToService(_ serviceUUID: String, uuid: String, permissions: UInt, properties: UInt, data: String) {
+        public func addCharacteristicToService(_ serviceUUID: String, uuid: String, permissions: UInt, properties: UInt, data: String) {
            let characteristicUUID = CBUUID(string: uuid)
            let propertyValue = CBCharacteristicProperties(rawValue: properties)
            let permissionValue = CBAttributePermissions(rawValue: permissions)
@@ -65,7 +67,7 @@ import Foundation
            print("added characteristic to service")
        }
        
-       @objc func start(_ resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+       @objc public func start(_ resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
            if (manager.state != .poweredOn) {
                alertJS("Bluetooth turned off")
                return;
@@ -78,14 +80,14 @@ import Foundation
            manager.startAdvertising(advertisementData)
        }
        
-       @objc func stop() {
+       @objc public func stop() {
            manager.stopAdvertising()
            advertising = false
            print("called stop")
        }
 
        @objc(sendNotificationToDevices:characteristicUUID:data:)
-       func sendNotificationToDevices(_ serviceUUID: String, characteristicUUID: String, data: Data) {
+       public func sendNotificationToDevices(_ serviceUUID: String, characteristicUUID: String, data: Data) {
            if(servicesMap.keys.contains(serviceUUID) == true){
                let service = servicesMap[serviceUUID]!
                let characteristic = getCharacteristicForService(service, characteristicUUID)

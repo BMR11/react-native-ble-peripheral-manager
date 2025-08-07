@@ -9,6 +9,7 @@ export interface Spec extends TurboModule {
   setName(name: string): void;
   addService(uuid: string, primary: boolean): void;
   addCharacteristicToService(
+    serviceUUID: string,
     uuid: string,
     permissions: number,
     properties: number,
@@ -16,7 +17,11 @@ export interface Spec extends TurboModule {
   ): void;
   start(): Promise<void>;
   stop(): void;
-  sendNotificationToDevices(characteristicUUID: string, data: string): void;
+  sendNotificationToDevices(
+    serviceUUID: string,
+    characteristicUUID: string,
+    data: string
+  ): void;
 
   readonly onDidUpdateState: EventEmitter<EventDidUpdateState>;
 }
