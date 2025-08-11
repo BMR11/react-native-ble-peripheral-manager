@@ -1,4 +1,6 @@
+#import <CoreBluetooth/CoreBluetooth.h>
 #import <Foundation/Foundation.h>
+
 #ifdef RCT_NEW_ARCH_ENABLED
 
 #import <BlePeripheralManagerSpec/BlePeripheralManagerSpec.h>
