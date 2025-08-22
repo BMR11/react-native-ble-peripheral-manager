@@ -5,7 +5,12 @@ import {
   onDidUpdateState,
   isAdvertising,
   setName,
+  start,
 } from 'react-native-ble-peripheral-manager';
+
+const MyDebugLog = (...args: any[]) => {
+  console.debug('[app]', ...args);
+};
 
 // const result = multiply(3, 7);
 
@@ -14,18 +19,18 @@ export default function App() {
   const [result, setResult] = useState(0);
 
   const handleUpdateState = useCallback((state: any) => {
-    console.log('[app] onDidUpdateState:', state);
+    MyDebugLog('onDidUpdateState:', state);
     setCurrentState(state.state);
   }, []);
 
   // Set up listeners and permissions when the component mounts
   useEffect(() => {
-    console.log('[app] main component mounting. Setting up listeners...');
+    MyDebugLog('main component mounting. Setting up listeners...');
     setCurrentState('Initializing...');
     const listeners: any[] = [onDidUpdateState(handleUpdateState)];
 
     return () => {
-      console.log('[app] main component unmounting. Removing listeners...');
+      MyDebugLog('main component unmounting. Removing listeners...');
       for (const listener of listeners) {
         listener.remove();
       }
@@ -37,7 +42,7 @@ export default function App() {
       <Text>Result: {result}</Text>
       <Text>Current State: {currentState}</Text>
       <Button
-        title="Multiply"
+        title="Test Multiply"
         onPress={() => {
           const newResult = multiply(5, 10);
           setResult(newResult);
@@ -45,9 +50,21 @@ export default function App() {
         }}
       />
       <Button
+        title="Start Advertising"
+        onPress={async () => {
+          try {
+            await start();
+            console.debug('[app] Peripheral started successfully');
+          } catch (error) {
+            console.error('[app] Error starting peripheral:', error);
+          }
+        }}
+      />
+      <Button
         title="Check Advertising"
         onPress={async () => {
           const advertising = await isAdvertising();
+          setCurrentState(advertising ? 'Advertising' : 'Not Advertising');
           console.debug('[app] Is advertising:', advertising);
         }}
       />

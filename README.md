@@ -27,9 +27,9 @@
 
 ## 📱 Platform Support
 
-| Platform | Peripheral Mode Support |
-|----------|--------------------------|
-| iOS      | ✅ Fully supported (iOS 11+) |
+| Platform | Peripheral Mode Support                                        |
+| -------- | -------------------------------------------------------------- |
+| iOS      | ✅ Fully supported (iOS 11+)                                   |
 | Android  | ✅ Supported on Android 5.0+ with some hardware limitations ⚠️ |
 
 > Note: Android peripheral mode support depends on chipset and manufacturer (e.g., most Samsung and Pixel phones support it; many others do not).
@@ -42,3 +42,8 @@
 npm install react-native-ble-peripheral-manager
 # or
 yarn add react-native-ble-peripheral-manager
+
+
+## Learnings
+- After adding plist 3 entries like NSBluetoothAlwaysUsageDescription, finally got delegate methods working, otherwise state was always .unknown
+```
