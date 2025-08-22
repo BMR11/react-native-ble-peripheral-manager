@@ -51,8 +51,8 @@ RCT_EXPORT_MODULE()
 
 }
 
-- (void)sendNotificationToDevices:(nonnull NSString *)serviceUUID characteristicUUID:(NSString *)characteristicUUID data:(NSString *)data {
-//    [_swBlePeripheralManager sendNotificationToDevices:serviceUUID characteristicUUID:characteristicUUID data:data];
+ - (void)sendNotificationToDevices:(nonnull NSString *)serviceUUID characteristicUUID:(NSString *)characteristicUUID data:(NSString *)data {
+     [_swBlePeripheralManager sendNotificationToDevices:serviceUUID characteristicUUID:characteristicUUID];
 }
 
 

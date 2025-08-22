@@ -21,12 +21,6 @@ import Foundation
     self.blePeripheralManager = blePeripheralManager
     super.init()
 
-    //      var queue: DispatchQueue
-    //            if let queueIdentifierKey = options["queueIdentifierKey"] as? String {
-    //                queue = DispatchQueue(label: queueIdentifierKey, qos: DispatchQoS.background)
-    //            } else {
-    //                queue = DispatchQueue.main
-    //            }
     manager = CBPeripheralManager(delegate: self, queue: DispatchQueue.main)
   }
 
@@ -39,16 +33,13 @@ import Foundation
   //// PUBLIC METHODS
   @objc public func setName(_ name: String) {
     self.name = name
-    print("name set to \(name)")
+    alertJS("name set to \(name)")
   }
 
   @objc public func isAdvertising(
     _ resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock
   ) {
-    DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
-      resolve(true)
-      print("called isAdvertising after delay")
-    }
+    resolve(advertising)
   }
 
   @objc(addService:primary:)
@@ -58,7 +49,7 @@ import Foundation
     if servicesMap.keys.contains(uuid) != true {
       servicesMap[uuid] = service
       manager.add(service)
-      print("added service \(uuid)")
+      alertJS("added service \(uuid)")
     } else {
       alertJS("service \(uuid) already there")
     }
@@ -69,14 +60,14 @@ import Foundation
     _ serviceUUID: String, uuid: String, permissions: UInt, properties: UInt, data: String
   ) {
     let characteristicUUID = CBUUID(string: uuid)
-    let propertyValue = CBCharacteristicProperties(rawValue: properties)
-    let permissionValue = CBAttributePermissions(rawValue: permissions)
+    //    let propertyValue = [.notify]//CBCharacteristicProperties(rawValue: properties)
+    //    let permissionValue = [.readable]//CBAttributePermissions(rawValue: permissions)
     let byteData: Data = data.data(using: .utf8)!
     let characteristic = CBMutableCharacteristic(
-      type: characteristicUUID, properties: propertyValue, value: byteData,
-      permissions: permissionValue)
+      type: characteristicUUID, properties: [.notify], value: byteData,
+      permissions: [.readable])
     servicesMap[serviceUUID]?.characteristics?.append(characteristic)
-    print("added characteristic to service")
+    alertJS("added characteristic \(uuid) to service \(characteristicUUID)")
   }
 
   @objc public func start(
@@ -103,13 +94,15 @@ import Foundation
   @objc public func stop() {
     manager.stopAdvertising()
     advertising = false
-    print("called stop")
+    alertJS("called stop")
   }
 
-  @objc(sendNotificationToDevices:characteristicUUID:data:)
+  @objc(sendNotificationToDevices:characteristicUUID:)
   public func sendNotificationToDevices(
-    _ serviceUUID: String, characteristicUUID: String, data: Data
+    _ serviceUUID: String, characteristicUUID: String
   ) {
+    let data = String(11).data(using: .utf8)
+
     if servicesMap.keys.contains(serviceUUID) == true {
       let service = servicesMap[serviceUUID]!
       let characteristic = getCharacteristicForService(service, characteristicUUID)
@@ -119,9 +112,9 @@ import Foundation
 
       let char = characteristic as! CBMutableCharacteristic
       char.value = data
-      let success = manager.updateValue(data, for: char, onSubscribedCentrals: nil)
+      let success = manager.updateValue(data!, for: char, onSubscribedCentrals: nil)
       if success {
-        print("changed data for characteristic \(characteristicUUID)")
+        alertJS("changed data for characteristic \(characteristicUUID)")
       } else {
         alertJS("failed to send changed data for characteristic \(characteristicUUID)")
       }
@@ -169,7 +162,7 @@ import Foundation
     didSubscribeTo characteristic: CBCharacteristic
   ) {
     let char = characteristic as! CBMutableCharacteristic
-    print("subscribed centrals: \(String(describing: char.subscribedCentrals))")
+    alertJS("subscribed centrals: \(String(describing: char.subscribedCentrals))")
   }
 
   // Respond to Unsubscribe events
@@ -178,7 +171,7 @@ import Foundation
     didUnsubscribeFrom characteristic: CBCharacteristic
   ) {
     let char = characteristic as! CBMutableCharacteristic
-    print("unsubscribed centrals: \(String(describing: char.subscribedCentrals))")
+    alertJS("unsubscribed centrals: \(String(describing: char.subscribedCentrals))")
   }
 
   // Service added
@@ -189,7 +182,7 @@ import Foundation
       alertJS("error: \(error)")
       return
     }
-    print("service: \(service)")
+    alertJS("service: \(service)")
   }
 
   // Bluetooth status changed
@@ -202,7 +195,10 @@ import Foundation
     }
     alertJS("BT state change: \(state)")
   }
-
+  
+  func peripheral(_ peripheral: CBPeripheral, didModifyServices invalidatedServices: [CBService]) {
+      alertJS("⚠️ Services modified on peripheral: \(peripheral), invalidated: \(invalidatedServices)")
+  }
   // Advertising started
   public func peripheralManagerDidStartAdvertising(_ peripheral: CBPeripheralManager, error: Error?)
   {
@@ -214,7 +210,7 @@ import Foundation
     }
     advertising = true
     //           startPromiseResolve!(advertising)
-    print("advertising succeeded!")
+    alertJS("advertising succeeded!")
   }
 
   //// HELPERS
@@ -223,11 +219,11 @@ import Foundation
     for (uuid, service) in servicesMap {
       for characteristic in service.characteristics ?? [] {
         if characteristic.uuid.isEqual(characteristicUUID) {
-          print("service \(uuid) does have characteristic \(characteristicUUID)")
+          alertJS("service \(uuid) does have characteristic \(characteristicUUID)")
           if characteristic is CBMutableCharacteristic {
             return characteristic
           }
-          print("but it is not mutable")
+          alertJS("but it is not mutable")
         } else {
           alertJS("characteristic you are trying to access doesn't match")
         }
@@ -241,11 +237,11 @@ import Foundation
   {
     for characteristic in service.characteristics ?? [] {
       if characteristic.uuid.isEqual(characteristicUUID) {
-        print("service \(service.uuid) does have characteristic \(characteristicUUID)")
+        alertJS("service \(service.uuid) does have characteristic \(characteristicUUID)")
         if characteristic is CBMutableCharacteristic {
           return characteristic
         }
-        print("but it is not mutable")
+        alertJS("but it is not mutable")
       } else {
         alertJS("characteristic you are trying to access doesn't match")
       }
@@ -262,12 +258,10 @@ import Foundation
   }
 
   func alertJS(_ message: Any) {
-    self.blePeripheralManager?.emit(onDidUpdateState: ["state": "message: \(message)"])
 
-    print(message)
-    if hasListeners {
-      self.blePeripheralManager?.emit(onDidUpdateState: ["state": message])
-    }
+    //    if hasListeners {
+    self.blePeripheralManager?.emit(onDidUpdateState: ["state": "[native🟣]: \(message)"])
+    //    }
   }
 
 }

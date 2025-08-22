@@ -1,33 +1,67 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Text, View, StyleSheet, Button } from 'react-native';
 import {
-  multiply,
+  Text,
+  View,
+  StyleSheet,
+  Button,
+  SafeAreaView,
+  ScrollView,
+  FlatList,
+} from 'react-native';
+import {
   onDidUpdateState,
   isAdvertising,
   setName,
   start,
+  stop,
+  addService,
+  addCharacteristicToService,
+  sendNotificationToDevices,
 } from 'react-native-ble-peripheral-manager';
 
-const MyDebugLog = (...args: any[]) => {
-  console.debug('[app]', ...args);
-};
-
-// const result = multiply(3, 7);
+const serviceUUID = '180D'; // heart rate service UUID
+const characteristicUUID = '2A37'; // heart rate measurement characteristic UUID
 
 export default function App() {
-  const [currentState, setCurrentState] = useState('None');
-  const [result, setResult] = useState(0);
+  const [debugLogs, setDebugLogs] = useState<string[]>([]);
+
+  const MyDebugLog = (...args: any[]) => {
+    setDebugLogs((prevLogs) => [args.join(), ...prevLogs]);
+  };
 
   const handleUpdateState = useCallback((state: any) => {
-    MyDebugLog('onDidUpdateState:', state);
-    setCurrentState(state.state);
+    const logMsg = `onDidUpdateState: ${JSON.stringify(state)}`;
+    // MyDebugLog(logMsg);
+    setDebugLogs((prevLogs) => [logMsg, ...prevLogs]);
+  }, []);
+
+  const createService = useCallback(() => {
+    const permissions = 0x0001; // Example permission
+    const properties = 0x0002; // Example property
+    const data = 'Hello World';
+    addService(serviceUUID, true);
+    addCharacteristicToService(
+      serviceUUID,
+      characteristicUUID,
+      permissions,
+      properties,
+      data
+    );
+    MyDebugLog('Service and characteristic added:', {
+      serviceUUID,
+      characteristicUUID,
+      permissions,
+      properties,
+      data,
+    });
   }, []);
 
   // Set up listeners and permissions when the component mounts
   useEffect(() => {
     MyDebugLog('main component mounting. Setting up listeners...');
-    setCurrentState('Initializing...');
     const listeners: any[] = [onDidUpdateState(handleUpdateState)];
+
+    // createService();
 
     return () => {
       MyDebugLog('main component unmounting. Removing listeners...');
@@ -35,18 +69,21 @@ export default function App() {
         listener.remove();
       }
     };
-  }, [handleUpdateState]);
+  }, [handleUpdateState, createService]);
 
   return (
-    <View style={styles.container}>
-      <Text>Result: {result}</Text>
-      <Text>Current State: {currentState}</Text>
+    <SafeAreaView style={styles.container}>
       <Button
-        title="Test Multiply"
+        title="Set Name"
         onPress={() => {
-          const newResult = multiply(5, 10);
-          setResult(newResult);
-          console.debug('[app] New multiplication result:', newResult);
+          setName('MyPeripheral');
+          MyDebugLog('[app] Peripheral name set to "MyPeripheral"');
+        }}
+      />
+      <Button
+        title="createService"
+        onPress={() => {
+          createService();
         }}
       />
       <Button
@@ -54,9 +91,9 @@ export default function App() {
         onPress={async () => {
           try {
             await start();
-            console.debug('[app] Peripheral started successfully');
+            MyDebugLog('[app] Peripheral started successfully');
           } catch (error) {
-            console.error('[app] Error starting peripheral:', error);
+            MyDebugLog('[app] Error starting peripheral:', error);
           }
         }}
       />
@@ -64,26 +101,95 @@ export default function App() {
         title="Check Advertising"
         onPress={async () => {
           const advertising = await isAdvertising();
-          setCurrentState(advertising ? 'Advertising' : 'Not Advertising');
-          console.debug('[app] Is advertising:', advertising);
+          MyDebugLog('[app] Is advertising:', advertising);
         }}
       />
       <Button
-        title="Set Name"
-        onPress={() => {
-          setName('MyPeripheral');
-          console.debug('[app] Peripheral name set to "MyPeripheral"');
+        title="Stop Advertising"
+        onPress={async () => {
+          try {
+            await stop();
+            MyDebugLog('[app] Peripheral stopped successfully');
+          } catch (error) {
+            MyDebugLog('[app] Error stopping peripheral:', error);
+          }
         }}
       />
-      <Text>Check console for updates.</Text>
-    </View>
+
+      <Button
+        title="Send Notification"
+        onPress={async () => {
+          try {
+            await sendNotificationToDevices(
+              serviceUUID,
+              characteristicUUID,
+              '11'
+            );
+            MyDebugLog('[app] Sent notification successfully');
+          } catch (error) {
+            MyDebugLog('[app] Error sending notification', error);
+          }
+        }}
+      />
+      <View
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          width: '100%',
+        }}
+      >
+        <Text style={{ fontWeight: 'bold', alignSelf: 'center' }}>
+          Debug Logs:
+        </Text>
+        <Button
+          title="Clear Logs"
+          onPress={async () => {
+            setDebugLogs([]);
+          }}
+        />
+      </View>
+      <ScrollView style={styles.scrollView}>
+        <View style={{ flex: 1 }}>
+          <FlatList
+            data={debugLogs}
+            keyExtractor={(_, idx) => idx.toString()}
+            renderItem={({ item }) => (
+              <>
+                <Text style={{ fontSize: 12, marginBottom: 4 }}>{item}</Text>
+                <View
+                  style={{
+                    borderBottomWidth: 1,
+                    borderBottomColor: '#ccc',
+                    marginVertical: 2,
+                  }}
+                />
+              </>
+            )}
+          />
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    borderColor: '#323232',
+    borderWidth: 1,
+    margin: 2,
+    padding: 20,
+    backgroundColor: '#e2e0ceff',
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
+  },
+  scrollView: {
+    flex: 1,
+    width: '100%',
+    backgroundColor: '#f0f0f0',
+    padding: 10,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 5,
   },
 });
